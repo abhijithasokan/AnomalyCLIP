@@ -40,7 +40,7 @@ def test(args):
 
     AnomalyCLIP_parameters = {"Prompt_length": args.n_ctx, "learnabel_text_embedding_depth": args.depth, "learnabel_text_embedding_length": args.t_n_ctx}
     
-    model, _ = AnomalyCLIP_lib.load("ViT-L/14@336px", device=device, design_details = AnomalyCLIP_parameters)
+    model, _ = AnomalyCLIP_lib.load("ViT-L/14@336px", device=device, design_details = AnomalyCLIP_parameters, download_root=args.download_root)
     model.eval()
 
     preprocess, target_transform = get_transform(args)
@@ -64,7 +64,7 @@ def test(args):
         metrics[obj]['image-ap'] = 0
 
     prompt_learner = AnomalyCLIP_PromptLearner(model.to("cpu"), AnomalyCLIP_parameters)
-    checkpoint = torch.load(args.checkpoint_path)
+    checkpoint = torch.load(args.checkpoint_path, map_location=device)
     prompt_learner.load_state_dict(checkpoint["prompt_learner"])
     prompt_learner.to(device)
     model.to(device)
@@ -190,6 +190,7 @@ if __name__ == '__main__':
     parser.add_argument("--metrics", type=str, default='image-pixel-level')
     parser.add_argument("--seed", type=int, default=111, help="random seed")
     parser.add_argument("--sigma", type=int, default=4, help="zero shot")
+    parser.add_argument("--download_root", type=str, default="./downloaded_cp/", help="root directory for downloading models")
     
     args = parser.parse_args()
     print(args)
