@@ -13,12 +13,12 @@ class MVTec3DSolver(object):
         self.meta_path = f'{root}/meta.json'
 
     def run(self):
-        info = dict(train={}, test={})
+        info = dict(train={}, test={}, validation={})
         anomaly_samples = 0
         normal_samples = 0
         for cls_name in self.CLSNAMES:
             cls_dir = f'{self.root}/{cls_name}'
-            for phase in ['train', 'test']:
+            for phase in ['train', 'test', 'validation']:
                 cls_info = []
                 species = os.listdir(f'{cls_dir}/{phase}')
                 for specie in species:

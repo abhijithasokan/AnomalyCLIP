@@ -8,6 +8,8 @@ from utils import normalize
 from dataset import Dataset
 from logger import get_logger
 from tqdm import tqdm
+from collections import defaultdict
+import json
 
 import os
 import random
@@ -77,6 +79,7 @@ def test(args):
 
 
     model.to(device)
+    ad_scores = defaultdict(dict)
     for idx, items in enumerate(tqdm(test_dataloader)):
         image = items['img'].to(device)
         cls_name = items['cls_name']
@@ -110,7 +113,13 @@ def test(args):
             results[cls_name[0]]['pr_sp'].extend(text_probs.detach().cpu())
             anomaly_map = torch.stack([torch.from_numpy(gaussian_filter(i, sigma = args.sigma)) for i in anomaly_map.detach().cpu()], dim = 0 )
             results[cls_name[0]]['anomaly_maps'].append(anomaly_map)
+
+            for item_ind, img_name in enumerate(items['img_path']):
+                ad_scores[cls_name[item_ind]][img_name] = text_probs[item_ind].item()
             # visualizer(items['img_path'], anomaly_map.detach().cpu().numpy(), args.image_size, args.save_path, cls_name)
+
+    with open(os.path.join(save_path, 'ad_scores.json'), 'w') as f:
+        json.dump(ad_scores, f)
 
     table_ls = []
     image_auroc_list = []
